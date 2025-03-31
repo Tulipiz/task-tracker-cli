@@ -66,22 +66,50 @@ $menu = [
             return;
         }
 
-        $userFound = false;
+        $found = false;
         foreach ($data as &$task) {
             if ($task['id'] === $id) {
                 $task['description'] = $description;
                 $task['updatedAt'] = date('d/m/Y H:i:s');
-                $userFound = true;
+                $found = true;
                 break;
             }
         }
 
-        if ($userFound) {
+        if ($found) {
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             file_put_contents($filePath, $json);
             echo "Task added successfully (ID:" . $id . ")\n";
+            return true;
         } else {
             echo "Usuário não encontrado.\n";
+            return false;
+        }
+    },
+    'delete' => function ($id) use ($filePath) {
+        if (!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
+        $data = json_decode(file_get_contents($filePath), true);
+
+        $found = false;
+        foreach ($data as $key => $task) {
+            if ($task['id'] == $id) {
+                unset($data[$key]);
+                $found = true;
+                break;
+            }
+        }
+
+        if ($found) {
+            $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            file_put_contents($filePath,  $json);
+            echo "Registro com ID $id excluido com sucesso.\n";
+            return true;
+        } else {
+            echo "Erro: Registro com ID $id não encontrado.\n";
+            return false;
         }
     }
 
@@ -98,7 +126,7 @@ while (true) {
         continue;
     }
 
-    preg_match('/^(\w+)\s+(\d+)?\s*"([^"]+)"/', $input, $matches);
+    preg_match('/^(\w+)\s+(\d+)?(?:\s*"([^"]+)")?/', $input, $matches);
 
     $command = $matches[1] ?? null;
     $id = isset($matches[2]) ? (int)$matches[2] : null;
@@ -110,6 +138,8 @@ while (true) {
             $menu[$command]($args);
         } elseif ($command === 'update' && $id) {
             $menu[$command]($id, $args);
+        } elseif ($command === 'delete' && $id) {
+            $menu[$command]($id);
         } else {
             echo "Erro: ID da tarefa é necessário para o comando update!\n";
         }

@@ -1,4 +1,5 @@
 <?php
+
 $filePath = 'tasks.json';
 date_default_timezone_set('America/Sao_Paulo');
 $menu = [
@@ -16,21 +17,6 @@ $menu = [
         echo "\033c";
     },
     'add' => function ($args) use ($filePath) {
-        /*
-        1 - verificar se existe o json
-        2 - validar no arquivo json,
-        Caso exista: Deve pegar o ID do ultimo registro e somar + 1;
-        Caso não exista: é igual a 1;
-
-        3 - fazer o $data 
-        id: Um identificador único para a tarefa
-        description: Uma breve descrição da tarefa
-        status: todo,done,in-progress.
-        createdAt: A data e hora em que a tarefa foi criada
-        updatedAt: A data e hora em que a tarefa foi atualizada pela última vez
-
-        4 - Salvar no Array.
-        */
         $data = [
             "id" => 1,
             "description" => $args,
@@ -54,10 +40,10 @@ $menu = [
 
         $tasksArray[] = $data;
 
-        $json = json_encode($tasksArray, JSON_PRETTY_PRINT);
+        $json = json_encode($tasksArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
         if(file_put_contents($filePath, $json)){
-            echo "Task added successfully (ID:" . $data['id'] . ")";
+            echo "Task added successfully (ID:" . $data['id'] . ")\n";
         }
     },
 ];
@@ -70,7 +56,7 @@ while (true) {
     $parts = explode(" ", $input);
 
     $command = array_shift($parts);
-    $args = $parts;
+    $args = implode(" ", $parts);
 
     if (isset($menu[$command])) {
         $menu[$command]($args);

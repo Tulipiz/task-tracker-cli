@@ -50,6 +50,10 @@ $menu = [
         }
     },
     'update' => function ($id, $args) use ($filePath) {
+        if (!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
         $data = json_decode(file_get_contents($filePath), true);
         $description = trim($args, "\"");
         if (empty(trim($description))) {
@@ -71,15 +75,14 @@ $menu = [
                 break;
             }
         }
-  
-        if($userFound){
+
+        if ($userFound) {
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             file_put_contents($filePath, $json);
             echo "Task added successfully (ID:" . $id . ")\n";
         } else {
             echo "Usuário não encontrado.\n";
         }
-
     }
 
 ];

@@ -25,7 +25,7 @@ $menu = [
         $data = [
             "id" => 1,
             "description" => $description,
-            "status" => "done",
+            "status" => "todo",
             "createdAT" =>  date('d/m/Y H:i:s'),
             "updatedAt" => null
         ];

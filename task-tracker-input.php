@@ -79,7 +79,7 @@ $menu = [
         if ($found) {
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             file_put_contents($filePath, $json);
-            echo "Task added successfully (ID:" . $id . ")\n";
+            echo "Task updated successfully (ID:" . $id . ")\n";
             return true;
         } else {
             echo "Usuário não encontrado.\n";
@@ -105,10 +105,46 @@ $menu = [
         if ($found) {
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             file_put_contents($filePath,  $json);
-            echo "Registro com ID $id excluido com sucesso.\n";
+            echo "Task deleted successfully (ID:" . $id . ")\n";
             return true;
         } else {
-            echo "Erro: Registro com ID $id não encontrado.\n";
+            echo "Task not found.\n";
+            return false;
+        }
+    },
+    'list' => function () use ($filePath) {
+        if (!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
+        $data = json_decode(file_get_contents($filePath), true);
+        echo "\n ---- Tarefas ---- \n";
+        foreach ($data as $task) {
+            echo $task['description'] . "\n";
+        }
+        echo "\n";
+    },
+    'mark-in-progress' => function ($id) use ($filePath) {
+        if (!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
+        $data = json_decode(file_get_contents($filePath), true);
+        $found = false;
+        foreach ($data as &$task) {
+            if ($task['id'] = $id) {
+                $task['description'] = 'in-progress';
+                $found = true;
+                break;
+            }
+        }
+        if($found){
+            $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            file_put_contents($filePath, $json);
+            echo "Task (ID:" . $id . ") in-progress\n";
+            return true;
+        } else {
+            echo "Task not found.\n";
             return false;
         }
     }
@@ -120,7 +156,7 @@ while (true) {
     echo "task-cli ";
     $input = trim(fgets(STDIN));
 
-    $specialCommands = ['exit', 'help', 'clear'];
+    $specialCommands = ['exit', 'help', 'clear', 'list'];
     if (in_array($input, $specialCommands)) {
         $menu[$input]();
         continue;

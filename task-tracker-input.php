@@ -112,18 +112,6 @@ $menu = [
             return false;
         }
     },
-    'list' => function () use ($filePath) {
-        if (!file_exists($filePath)) {
-            echo "Erro: Arquivo não foi criado. \n";
-            return;
-        }
-        $data = json_decode(file_get_contents($filePath), true);
-        echo "\n ---- Tarefas ---- \n";
-        foreach ($data as $task) {
-            echo $task['description'] . "\n";
-        }
-        echo "\n";
-    },
     'mark-in-progress' => function ($id) use ($filePath) {
         if (!file_exists($filePath)) {
             echo "Erro: Arquivo não foi criado. \n";
@@ -148,22 +136,22 @@ $menu = [
             return false;
         }
     },
-    'mark-done' => function ($id) use ($filePath){
-        if(!file_exists($filePath)) {
+    'mark-done' => function ($id) use ($filePath) {
+        if (!file_exists($filePath)) {
             echo "Erro: Arquivo não foi criado. \n";
             return;
         }
         $data = json_decode(file_get_contents($filePath), true);
         $found = false;
-        foreach($data as &$task){
-            if($task['id'] === $id){
+        foreach ($data as &$task) {
+            if ($task['id'] === $id) {
                 $task['status'] = 'done';
                 $found = true;
                 break;
             }
         }
 
-        if($found){
+        if ($found) {
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             file_put_contents($filePath, $json);
             echo "Task (ID:" . $id . ") done. \n";
@@ -172,7 +160,48 @@ $menu = [
             echo "Task not found. \n";
             return false;
         }
+    },
+    'list' => function () use ($filePath) {
+        if (!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
+        $data = json_decode(file_get_contents($filePath), true);
+        echo "\n ---- All Tasks ---- \n";
+        foreach ($data as $task) {
+            echo $task['description'] . "\n";
+        }
+        echo "\n";
+    },
+    'list-done' => function () use ($filePath) {
+        if (!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
+        $data = json_decode(file_get_contents($filePath), true);
+        echo "\n ---- Tasks in Done ---- \n";
+        foreach ($data as $task) {
+            if ($task['status'] === 'done') {
+                echo " - " . $task['description'] . "\n";
+            }
+        }
+        echo "\n";
+    },
+    'list-in-progress' => function () use ($filePath) {
+        if (!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
+        $data = json_decode(file_get_contents($filePath), true);
+        echo "\n ---- Tasks in Progress ---- \n";
+        foreach ($data as $task) {
+            if ($task['status'] === 'in-progress') {
+                echo " - " . $task['description'] . "\n";
+            }
+        }
+        echo "\n";
     }
+
 
 ];
 
@@ -182,7 +211,12 @@ while (true) {
     echo "task-cli ";
     $input = trim(fgets(STDIN));
 
-    $specialCommands = ['exit', 'help', 'clear', 'list'];
+    $specialCommands = ['exit', 'help', 'clear', 'list', 'list-done', 'list-in-progress'];
+    if ($input === 'list done') {
+        $input = 'list-done';
+    } else if ($input === 'list in-progress') {
+        $input = 'list-in-progress';
+    }
     if (in_array($input, $specialCommands)) {
         $menu[$input]();
         continue;
@@ -190,8 +224,8 @@ while (true) {
     $markCommands = ['mark-in-progress', 'mark-done'];
 
     if (preg_match('/^(mark-in-progress|mark-done)\s+(\d+)$/', $input, $matches)) {
-        $command = $matches[1]; 
-        $id = (int)$matches[2]; 
+        $command = $matches[1];
+        $id = (int)$matches[2];
 
         if (isset($menu[$command])) {
             $menu[$command]($id);

@@ -200,6 +200,20 @@ $menu = [
             }
         }
         echo "\n";
+    },
+    'list-todo' => function () use ($filePath) {
+        if (!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
+        $data = json_decode(file_get_contents($filePath), true);
+        echo "\n ---- Tasks in Todo ---- \n";
+        foreach ($data as $task) {
+            if ($task['status'] === 'todo') {
+                echo " - " . $task['description'] . "\n";
+            }
+        }
+        echo "\n";
     }
 
 
@@ -211,11 +225,14 @@ while (true) {
     echo "task-cli ";
     $input = trim(fgets(STDIN));
 
-    $specialCommands = ['exit', 'help', 'clear', 'list', 'list-done', 'list-in-progress'];
+    $specialCommands = ['exit', 'help', 'clear', 'list', 'list-done', 'list-in-progress', 'list-todo'];
+
     if ($input === 'list done') {
         $input = 'list-done';
     } else if ($input === 'list in-progress') {
         $input = 'list-in-progress';
+    } else if ($input === 'list todo') {
+        $input = 'list-todo';
     }
     if (in_array($input, $specialCommands)) {
         $menu[$input]();
@@ -233,7 +250,7 @@ while (true) {
             echo "Comando inválido.\n";
         }
 
-        continue; // volta para o começo do while
+        continue; 
     }
 
     preg_match('/^(\w+)\s+(\d+)?(?:\s*"([^"]+)")?/', $input, $matches);

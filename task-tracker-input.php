@@ -132,24 +132,50 @@ $menu = [
         $data = json_decode(file_get_contents($filePath), true);
         $found = false;
         foreach ($data as &$task) {
-            if ($task['id'] = $id) {
-                $task['description'] = 'in-progress';
+            if ($task['id'] === $id) {
+                $task['status'] = 'in-progress';
                 $found = true;
                 break;
             }
         }
-        if($found){
+        if ($found) {
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             file_put_contents($filePath, $json);
-            echo "Task (ID:" . $id . ") in-progress\n";
+            echo "Task (ID:" . $id . ") in-progress. \n";
             return true;
         } else {
             echo "Task not found.\n";
             return false;
         }
+    },
+    'mark-done' => function ($id) use ($filePath){
+        if(!file_exists($filePath)) {
+            echo "Erro: Arquivo não foi criado. \n";
+            return;
+        }
+        $data = json_decode(file_get_contents($filePath), true);
+        $found = false;
+        foreach($data as &$task){
+            if($task['id'] === $id){
+                $task['status'] = 'done';
+                $found = true;
+                break;
+            }
+        }
+
+        if($found){
+            $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            file_put_contents($filePath, $json);
+            echo "Task (ID:" . $id . ") done. \n";
+            return true;
+        } else {
+            echo "Task not found. \n";
+            return false;
+        }
     }
 
 ];
+
 echo ("\n\n Digite 'help' para listar todos os comandos disponiveis!\n\n");
 
 while (true) {
@@ -160,6 +186,20 @@ while (true) {
     if (in_array($input, $specialCommands)) {
         $menu[$input]();
         continue;
+    }
+    $markCommands = ['mark-in-progress', 'mark-done'];
+
+    if (preg_match('/^(mark-in-progress|mark-done)\s+(\d+)$/', $input, $matches)) {
+        $command = $matches[1]; 
+        $id = (int)$matches[2]; 
+
+        if (isset($menu[$command])) {
+            $menu[$command]($id);
+        } else {
+            echo "Comando inválido.\n";
+        }
+
+        continue; // volta para o começo do while
     }
 
     preg_match('/^(\w+)\s+(\d+)?(?:\s*"([^"]+)")?/', $input, $matches);
@@ -174,7 +214,7 @@ while (true) {
             $menu[$command]($args);
         } elseif ($command === 'update' && $id) {
             $menu[$command]($id, $args);
-        } elseif ($command === 'delete' && $id) {
+        } elseif (($command === 'delete') && $id) {
             $menu[$command]($id);
         } else {
             echo "Erro: ID da tarefa é necessário para o comando update!\n";
